@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+  <Shipment account_id="1" shipping_address_id="1" shipped_date="2018-09-12 14:00:00" delivery_date="2018-09-10 10:20:00"/>
+  <Shipment account_id="2" shipping_address_id="2" shipped_date="2018-09-08 14:00:00" delivery_date="2018-09-12 10:20:00"/>
+  <Shipment account_id="3" shipping_address_id="3" shipped_date="2018-09-06 14:00:00" delivery_date="2018-09-08 10:20:00"/>
+</dataset>
