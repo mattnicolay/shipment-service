@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solstice.shipment.dao.ShipmentRepository;
 import com.solstice.shipment.model.Shipment;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,20 +79,20 @@ public class ShipmentServiceUnitTests {
   }
 
   @Test
-  public void createShipment_ValidJson_ReturnsShipment() {
+  public void createShipment_ValidJson_ReturnsShipment() throws IOException {
     Shipment mockShipment = getMockShipment1();
     Shipment shipment = shipmentService.createShipment(toJson(mockShipment));
 
     assertThatShipmentsAreEqual(mockShipment, shipment);
   }
 
-  @Test
-  public void createShipment_InvalidJson_ReturnsNull() {
-    assertThat(shipmentService.createShipment("{wrong}"), is(nullValue()));
+  @Test(expected = IOException.class)
+  public void createShipment_InvalidJson_ThrowsIOException() throws IOException {
+    shipmentService.createShipment("{wrong}");
   }
 
   @Test
-  public void updateShipment_ValidIdAndJson_ReturnsShipment() {
+  public void updateShipment_ValidIdAndJson_ReturnsShipment() throws IOException {
     Shipment mockShipment = getMockShipment1();
     when(shipmentRepository.findById(1)).thenReturn(mockShipment);
     Shipment shipment = shipmentService.updateShipment(1, toJson(mockShipment));
@@ -100,14 +101,14 @@ public class ShipmentServiceUnitTests {
   }
 
   @Test
-  public void updateShipment_InvalidId_ReturnsNull() {
+  public void updateShipment_InvalidId_ReturnsNull() throws IOException {
     when(shipmentRepository.findById(2)).thenReturn(null);
     assertThat(shipmentService.updateShipment(2, toJson(getMockShipment1())), is(nullValue()));
   }
 
-  @Test
-  public void updateShipment_InvalidJson_ReturnsNull() {
-    assertThat(shipmentService.updateShipment(1, "{wrong}"), is(nullValue()));
+  @Test(expected = IOException.class)
+  public void updateShipment_InvalidJson_ThrowsIOException() throws IOException {
+    shipmentService.updateShipment(1, "{wrong}");
   }
 
   @Test

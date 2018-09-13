@@ -28,7 +28,7 @@ public class ShipmentService {
     return shipmentRepository.findById(id);
   }
 
-  public Shipment createShipment(String data) {
+  public Shipment createShipment(String data) throws IOException {
     Shipment shipment = shipmentFromJson(data);
     if (shipment != null) {
       shipmentRepository.save(shipment);
@@ -36,7 +36,7 @@ public class ShipmentService {
     return shipment;
   }
 
-  public Shipment updateShipment(long id, String data) {
+  public Shipment updateShipment(long id, String data) throws IOException {
     Shipment updatedShipment = shipmentFromJson(data);
     Shipment dbShipment = shipmentRepository.findById(id);
     if (updatedShipment == null || dbShipment == null) {
@@ -55,14 +55,10 @@ public class ShipmentService {
     return shipment;
   }
 
-  public Shipment shipmentFromJson(String json) {
+  public Shipment shipmentFromJson(String json) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
     Shipment shipment = null;
-    try {
-      shipment = objectMapper.readValue(json, Shipment.class);
-    } catch (IOException e) {
-      logger.error("IOException thrown in shipmentFromJson: {}", e.toString());
-    }
+    shipment = objectMapper.readValue(json, Shipment.class);
     return shipment;
   }
 }
