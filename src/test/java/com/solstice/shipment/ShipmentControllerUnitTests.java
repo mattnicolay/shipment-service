@@ -164,7 +164,8 @@ public class ShipmentControllerUnitTests {
               post(endpoint)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(requestBody)
-          ).andExpect(status().is(expectedStatus));
+          ).andExpect(status().is(expectedStatus))
+              .andExpect(content().json(expectedResponseBody));
           break;
 
         case PUT:
@@ -172,11 +173,13 @@ public class ShipmentControllerUnitTests {
               put(endpoint)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(requestBody)
-          ).andExpect(status().is(expectedStatus));
+          ).andExpect(status().is(expectedStatus))
+              .andExpect(content().json(expectedResponseBody));
           break;
 
         case DELETE:
-          mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus));
+          mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus))
+              .andExpect(content().json(expectedResponseBody));
           break;
 
         default:

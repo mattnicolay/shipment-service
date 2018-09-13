@@ -15,9 +15,11 @@ public class ShipmentService {
   private Logger logger = LoggerFactory.getLogger(ShipmentService.class);
 
   private ShipmentRepository shipmentRepository;
+  ObjectMapper objectMapper;
 
   public ShipmentService(ShipmentRepository shipmentRepository) {
     this.shipmentRepository = shipmentRepository;
+    objectMapper = new ObjectMapper();
   }
 
   public List<Shipment> getShipments() {
@@ -29,7 +31,7 @@ public class ShipmentService {
   }
 
   public Shipment createShipment(String data) throws IOException {
-    Shipment shipment = shipmentFromJson(data);
+    Shipment shipment = objectMapper.readValue(data, Shipment.class);
     if (shipment != null) {
       shipmentRepository.save(shipment);
     }
@@ -37,7 +39,7 @@ public class ShipmentService {
   }
 
   public Shipment updateShipment(long id, String data) throws IOException {
-    Shipment updatedShipment = shipmentFromJson(data);
+    Shipment updatedShipment = objectMapper.readValue(data, Shipment.class);
     Shipment dbShipment = shipmentRepository.findById(id);
     if (updatedShipment == null || dbShipment == null) {
       return null;
@@ -52,13 +54,6 @@ public class ShipmentService {
   public Shipment deleteShipment(long id) {
     Shipment shipment = shipmentRepository.findById(id);
     shipmentRepository.delete(shipment);
-    return shipment;
-  }
-
-  public Shipment shipmentFromJson(String json) throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    Shipment shipment = null;
-    shipment = objectMapper.readValue(json, Shipment.class);
     return shipment;
   }
 }
