@@ -2,6 +2,8 @@ applications:
 - name: shipment-service
   memory: 512M
   path: build/libs/shipment-service-0.0.1-SNAPSHOT.jar
+  routes:
+    shipment-service-restless-sitatunga.cfapps.io
   buildpack:
     java_buildpack
   env:
