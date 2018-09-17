@@ -1,4 +1,4 @@
-package com.solstice.shipment;
+package com.solstice.shipment.controller;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solstice.shipment.controller.ShipmentController;
 import com.solstice.shipment.exception.ShipmentExceptionHandler;
 import com.solstice.shipment.model.Shipment;
+import com.solstice.shipment.model.ShipmentDisplay;
 import com.solstice.shipment.service.ShipmentService;
 import java.io.IOException;
 import java.util.Arrays;
@@ -43,90 +44,104 @@ public class ShipmentControllerUnitTests {
   @MockBean
   private ShipmentService shipmentService;
 
-  private ShipmentController shipmentController;
   private MockMvc mockMvc;
 
   @Before
   public void setup() {
-    shipmentController = new ShipmentController(shipmentService);
+    ShipmentController shipmentController = new ShipmentController(shipmentService);
     mockMvc = MockMvcBuilders.standaloneSetup(shipmentController)
         .setControllerAdvice(new ShipmentExceptionHandler()).build();
   }
 
   @Test
-  public void getShipments_Found_StatusCode200() {
+  public void getShipments_Found_StatusCode200() throws Exception {
     when(shipmentService.getShipments()).thenReturn(Arrays.asList(new Shipment()));
     mockMvcPerform(GET, "/shipments", "", 200, toJson(Arrays.asList(new Shipment())));
   }
 
   @Test
-  public void getShipments_NotFound_StatusCode404() {
-    mockMvcPerform(GET, "/shipments", 404, "");
+  public void getShipments_NotFound_StatusCode404() throws Exception {
+    mockMvcPerform(GET, "/shipments", 404, "[]");
   }
 
   @Test
-  public void getShipmentById_Found_StatusCode200() {
+  public void getShipmentsByAccountId_Found_StatusCode200() throws Exception {
+    when(shipmentService.getShipmentByAccountId(1)).thenReturn(Arrays.asList(new ShipmentDisplay()));
+    mockMvcPerform(GET, "/shipments?accountId=1", "", 200, toJson(Arrays.asList(new ShipmentDisplay())));
+  }
+
+  @Test
+  public void getShipmentsByAccountId_NotFound_StatusCode404() throws Exception {
+    mockMvcPerform(GET, "/shipments", 404, "[]");
+  }
+
+  @Test
+  public void getShipmentById_Found_StatusCode200() throws Exception {
     when(shipmentService.getShipmentById(1)).thenReturn(new Shipment());
     mockMvcPerform(GET, "/shipments/1", 200, toJson(new Shipment()));
   }
 
   @Test
-  public void getShipmentsById_NotFound_StatusCode404() {
+  public void getShipmentsById_NotFound_StatusCode404() throws Exception {
     mockMvcPerform(GET, "/shipments/1", 404, "");
   }
 
   @Test
-  public void createShipment_ValidJson_StatusCode201() throws IOException {
+  public void createShipment_ValidJson_StatusCode201() throws Exception {
     when(shipmentService.createShipment(toJson(new Shipment()))).thenReturn(new Shipment());
     mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 201, toJson(new Shipment()));
   }
 
   @Test
-  public void createShipment_InternalFailure_StatusCode500() {
+  public void createShipment_InternalFailure_StatusCode500() throws Exception {
     mockMvcPerform(POST, "/shipments", "{wrong}", 500, "");
   }
 
   @Test
-  public void createShipment_InvalidJson_StatusCode400() throws IOException {
+  public void createShipment_InvalidJson_StatusCode400() throws Exception {
     when(shipmentService.createShipment(anyString())).thenThrow(new IOException());
-    mockMvcPerform(POST, "/shipments", "{wrong}", 400, "");
+    mockMvcPerform(POST, "/shipments", "{wrong}", 400,
+        "<h1>ERROR:</h1>\n"
+        + " Invalid Json format");
   }
 
   @Test
-  public void createShipment_EmptyBody_StatusCode400() {
+  public void createShipment_EmptyBody_StatusCode400() throws Exception {
     mockMvcPerform(POST, "/shipments", 400, "");
   }
 
   @Test
-  public void updateShipment_ValidIdAndJson_StatusCode200() throws IOException {
+  public void updateShipment_ValidIdAndJson_StatusCode200() throws Exception {
     when(shipmentService.updateShipment(1, toJson(new Shipment()))).thenReturn(new Shipment());
     mockMvcPerform(PUT, "/shipments/1", toJson(new Shipment()), 200, toJson(new Shipment()));
   }
 
   @Test
-  public void updateShipment_InvalidJson_StatusCode400() throws IOException {
+  public void updateShipment_InvalidJson_StatusCode400() throws Exception {
     when(shipmentService.updateShipment(anyLong(), anyString())).thenThrow(new IOException());
-    mockMvcPerform(PUT, "/shipments/1", "{wrong}", 400, "");
+    mockMvcPerform(PUT, "/shipments/1", "{wrong}", 400,
+        "<h1>ERROR:</h1>\n"
+        + " Invalid Json format");
   }
 
   @Test
-  public void updateShipment_InvalidId_StatusCode404() {
+  public void updateShipment_InvalidId_StatusCode404() throws Exception {
     mockMvcPerform(PUT, "/shipments/1", toJson(new Shipment()), 404, "");
   }
 
   @Test
-  public void updateShipment_EmptyBody_StatusCode400() {
+  public void updateShipment_EmptyBody_StatusCode400() throws Exception {
     mockMvcPerform(PUT, "/shipments/1", 400);
   }
 
   @Test
-  public void deleteShipment_ValidId_StatusCode200() throws IOException {
+  public void deleteShipment_ValidId_StatusCode200() throws Exception {
     when(shipmentService.deleteShipment(1)).thenReturn(new Shipment());
     mockMvcPerform(DELETE, "/shipments/1", 200, toJson(new Shipment()));
   }
 
   @Test
-  public void deleteShipment_InvalidId_StatusCode404() {
+  public void deleteShipment_InvalidId_StatusCode404() throws Exception {
     mockMvcPerform(DELETE, "/shipments/1", 404, "");
   }
 
@@ -141,52 +156,49 @@ public class ShipmentControllerUnitTests {
     return result;
   }
 
-  private void mockMvcPerform(String method, String endpoint, int expectedStatus) {
+  private void mockMvcPerform(String method, String endpoint, int expectedStatus) throws Exception {
     mockMvcPerform(method, endpoint, "", expectedStatus, "");
   }
 
-  private void mockMvcPerform(String method, String endpoint, int expectedStatus, String expectedResponseBody) {
+  private void mockMvcPerform(String method, String endpoint, int expectedStatus, String expectedResponseBody)
+      throws Exception {
     mockMvcPerform(method, endpoint, "", expectedStatus, expectedResponseBody);
   }
 
   private void mockMvcPerform(String method, String endpoint, String requestBody, int expectedStatus,
-      String expectedResponseBody) {
-    try {
-      switch(method){
+      String expectedResponseBody) throws Exception {
+    switch(method){
 
-        case GET:
-          mockMvc.perform(get(endpoint)).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case GET:
+        mockMvc.perform(get(endpoint)).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case POST:
-          mockMvc.perform(
-              post(endpoint)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(requestBody)
-          ).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case POST:
+        mockMvc.perform(
+            post(endpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+        ).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case PUT:
-          mockMvc.perform(
-              put(endpoint)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(requestBody)
-          ).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case PUT:
+        mockMvc.perform(
+            put(endpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+        ).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case DELETE:
-          mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case DELETE:
+        mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        default:
-          logger.error("Unknown method '{}' given to mockMvcPerform", method);
+      default:
+        logger.error("Unknown method '{}' given to mockMvcPerform", method);
       }
-    } catch (Exception e) {
-      logger.error("Exception thrown: {}", e.toString());
-    }
   }
 }

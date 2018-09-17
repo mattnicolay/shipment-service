@@ -11,7 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class Shipment {
+public class Shipment implements ShipmentObject {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
@@ -73,4 +73,25 @@ public class Shipment {
   public void setDeliveryDate(LocalDateTime deliveryDate) {
     this.deliveryDate = deliveryDate;
   }
+//
+//  @Override
+//  public boolean equals(Object o) {
+//    if (this == o) {
+//      return true;
+//    }
+//    if (o == null || getClass() != o.getClass()) {
+//      return false;
+//    }
+//    Shipment shipment = (Shipment) o;
+//    return id == shipment.id &&
+//        accountId == shipment.accountId &&
+//        shippingAddressId == shipment.shippingAddressId &&
+//        Objects.equals(shippedDate, shipment.shippedDate) &&
+//        Objects.equals(deliveryDate, shipment.deliveryDate);
+//  }
+//
+//  @Override
+//  public int hashCode() {
+//    return Objects.hash(id, accountId, shippingAddressId, shippedDate, deliveryDate);
+//  }
 }

@@ -2,18 +2,26 @@ package com.solstice.shipment.service;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solstice.shipment.dao.ShipmentRepository;
+import com.solstice.shipment.external.OrderClient;
+import com.solstice.shipment.external.ProductClient;
+import com.solstice.shipment.model.Order;
+import com.solstice.shipment.model.OrderLineItem;
+import com.solstice.shipment.model.Product;
 import com.solstice.shipment.model.Shipment;
+import com.solstice.shipment.model.ShipmentDisplay;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,12 +41,16 @@ public class ShipmentServiceUnitTests {
 
   @MockBean
   private ShipmentRepository shipmentRepository;
+  @MockBean
+  private ProductClient productClient;
+  @MockBean
+  private OrderClient orderClient;
 
   private ShipmentService shipmentService;
 
   @Before
   public void setup() {
-    shipmentService = new ShipmentService(shipmentRepository);
+    shipmentService = new ShipmentService(shipmentRepository, orderClient, productClient);
   }
 
   @Test
@@ -69,6 +81,7 @@ public class ShipmentServiceUnitTests {
     Shipment mockShipment = getMockShipment1();
     when(shipmentRepository.findById(1)).thenReturn(mockShipment);
     Shipment shipment = shipmentService.getShipmentById(1);
+    logger.info(toJson(shipment));
 
     assertThatShipmentsAreEqual(mockShipment, shipment);
   }
@@ -76,6 +89,65 @@ public class ShipmentServiceUnitTests {
   @Test
   public void getShipmentById_InvalidId_ReturnsNull() {
     assertThat(shipmentService.getShipmentById(1), is(nullValue()));
+  }
+
+  @Test
+  public void getShipmentByAccountId_ValidId_ReturnsListOfShipmentDisplays() {
+    List<ShipmentDisplay> mockShipmentDisplays = getMockDisplays();
+
+    when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
+    when(orderClient.getOrdersByAccount(anyLong())).thenReturn(getMockOrders());
+    when(productClient.getProductById(anyLong())).thenReturn(new Product("Test"));
+    List<ShipmentDisplay> shipmentDisplays = shipmentService.getShipmentByAccountId(1);
+
+    assertThat(shipmentDisplays, is(notNullValue()));
+    assertFalse(shipmentDisplays.isEmpty());
+
+    for (int i = 0; i < shipmentDisplays.size(); i++) {
+      ShipmentDisplay shipmentDisplay = shipmentDisplays.get(i);
+      ShipmentDisplay mockShipmentDisplay = mockShipmentDisplays.get(i);
+      assertThat(shipmentDisplay.getOrderNumber(), is(mockShipmentDisplay.getOrderNumber()));
+      assertThat(shipmentDisplay.getShippedDate(), is(equalTo(mockShipmentDisplay.getShippedDate())));
+      assertThat(shipmentDisplay.getDeliveryDate(), is(equalTo(mockShipmentDisplay.getDeliveryDate())));
+      for(int j = 0; j < shipmentDisplay.getOrderLineItems().size(); j++) {
+        OrderLineItem orderLineItem = shipmentDisplay.getOrderLineItems().get(j);
+        OrderLineItem mockOrderLineItem = mockShipmentDisplay.getOrderLineItems().get(j);
+        assertThat(orderLineItem.getProductName(), is(equalTo(mockOrderLineItem.getProductName())));
+        assertThat(orderLineItem.getQuantity(), is(mockOrderLineItem.getQuantity()));
+      }
+    }
+  }
+
+  @Test
+  public void getShipmentByAccountId_InvalidProductId_ProductNamesAreEmpty() {
+    List<ShipmentDisplay> mockShipmentDisplays = getMockDisplays();
+
+    when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
+    when(orderClient.getOrdersByAccount(anyLong())).thenReturn(getMockOrders());
+    List<ShipmentDisplay> shipmentDisplays = shipmentService.getShipmentByAccountId(1);
+
+    for (int i = 0; i < shipmentDisplays.size(); i++) {
+      ShipmentDisplay shipmentDisplay = shipmentDisplays.get(i);
+      ShipmentDisplay mockShipmentDisplay = mockShipmentDisplays.get(i);
+      assertThat(shipmentDisplay.getOrderNumber(), is(mockShipmentDisplay.getOrderNumber()));
+      assertThat(shipmentDisplay.getShippedDate(), is(equalTo(mockShipmentDisplay.getShippedDate())));
+      assertThat(shipmentDisplay.getDeliveryDate(), is(equalTo(mockShipmentDisplay.getDeliveryDate())));
+      for(int j = 0; j < shipmentDisplay.getOrderLineItems().size(); j++) {
+        OrderLineItem orderLineItem = shipmentDisplay.getOrderLineItems().get(j);
+        OrderLineItem mockOrderLineItem = mockShipmentDisplay.getOrderLineItems().get(j);
+        assertThat(orderLineItem.getProductName(), is(equalTo("")));
+        assertThat(orderLineItem.getQuantity(), is(mockOrderLineItem.getQuantity()));
+      }
+    }
+  }
+
+  @Test
+  public void getShipmentByAccountId_InvalidId_ReturnsEmptyList() {
+
+    List<ShipmentDisplay> shipments = shipmentService.getShipmentByAccountId(1);
+
+    assertThat(shipments, is(notNullValue()));
+    assertTrue(shipments.isEmpty());
   }
 
   @Test
@@ -137,6 +209,33 @@ public class ShipmentServiceUnitTests {
     assertThat(actual.getDeliveryDate(), is(equalTo(expected.getDeliveryDate())));
   }
 
+  private List<ShipmentDisplay> getMockDisplays() {
+    List<Shipment> shipments = getMockShipments();
+    List<ShipmentDisplay> shipmentDisplays = new ArrayList<>();
+
+    shipments.forEach(shipment -> shipmentDisplays.add(new ShipmentDisplay(
+            1,
+            shipment.getShippedDate(),
+            shipment.getDeliveryDate(),
+            getMockOrderLineItems())));
+
+    return shipmentDisplays;
+  }
+
+  private List<OrderLineItem> getMockOrderLineItems() {
+    List<OrderLineItem> orderLineItems = new ArrayList<>();
+    orderLineItems.add(new OrderLineItem(1, "Test", 1, 1L));
+    orderLineItems.add(new OrderLineItem(1, "Test", 1, 2L));
+    return orderLineItems;
+  }
+
+  private List<Order> getMockOrders() {
+    List<Order> orders = new ArrayList<>();
+    orders.add(new Order(1, getMockOrderLineItems()));
+    orders.add(new Order(2, getMockOrderLineItems()));
+    return orders;
+  }
+
   private List<Shipment> getMockShipments() {
     List<Shipment> shipments = new ArrayList<>();
     shipments.add(getMockShipment1());
@@ -145,19 +244,23 @@ public class ShipmentServiceUnitTests {
   }
 
   private Shipment getMockShipment1() {
-    return new Shipment(
+    Shipment shipment =  new Shipment(
         1,
         1,
         LocalDateTime.of(2018, 9, 8, 12, 30),
         LocalDateTime.of(2018, 9, 12, 8, 40));
+    shipment.setId(1L);
+    return shipment;
   }
 
   private Shipment getMockShipment2() {
-    return new Shipment(
+    Shipment shipment = new Shipment(
         2,
         2,
         LocalDateTime.of(2018, 9, 8, 12, 30),
         LocalDateTime.of(2018, 9, 12, 8, 40));
+    shipment.setId(2L);
+    return shipment;
   }
 
   private String toJson(Shipment shipment) {

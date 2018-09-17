@@ -9,4 +9,6 @@ public interface ShipmentRepository extends CrudRepository<Shipment, Long> {
   List<Shipment> findAll();
 
   Shipment findById(long id);
+
+  List<Shipment> findAllByAccountIdOrderByDeliveryDate(long accountId);
 }

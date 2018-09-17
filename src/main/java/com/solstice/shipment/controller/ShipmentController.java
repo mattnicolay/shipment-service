@@ -1,6 +1,8 @@
 package com.solstice.shipment.controller;
 
 import com.solstice.shipment.model.Shipment;
+import com.solstice.shipment.model.ShipmentDisplay;
+import com.solstice.shipment.model.ShipmentObject;
 import com.solstice.shipment.service.ShipmentService;
 import java.io.IOException;
 import java.util.List;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,12 +30,14 @@ public class ShipmentController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Shipment>> getShipments() {
-    List<Shipment> shipments = shipmentService.getShipments();
+  public ResponseEntity<ShipmentObject[]> getShipments(@RequestParam(value = "accountId", required = false) Long accountId) {
+    ShipmentObject[] shipments = accountId != null
+        ? shipmentService.getShipmentByAccountId(accountId).toArray(new ShipmentDisplay[0])
+        : shipmentService.getShipments().toArray(new Shipment[0]);
     return new ResponseEntity<>(
         shipments,
         new HttpHeaders(),
-        shipments.isEmpty() ? HttpStatus.NOT_FOUND : HttpStatus.OK
+        shipments.length == 0 ? HttpStatus.NOT_FOUND : HttpStatus.OK
     );
   }
 
