@@ -56,7 +56,7 @@ public class ShipmentService {
               .stream()
               .filter(order -> orderHasShipmentId(order, shipments))
               .findFirst();
-      Order order = orderOptional.orElseGet(() -> new Order(-1, new ArrayList<>()));
+      Order order = orderOptional.orElseGet(() -> new Order(0, new ArrayList<>()));
       long orderNumber = order.getOrderNumber();
 
       setProductNames(order.getOrderLineItems());

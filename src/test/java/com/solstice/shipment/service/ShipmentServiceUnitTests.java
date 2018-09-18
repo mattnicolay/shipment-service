@@ -25,6 +25,7 @@ import com.solstice.shipment.model.ShipmentDisplay;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -119,7 +120,32 @@ public class ShipmentServiceUnitTests {
   }
 
   @Test
-  public void getShipmentByAccountId_InvalidProductId_ProductNamesAreEmpty() {
+  public void getShipmentByAccountId_OrderOrderLineServiceIsDown_OrdersAreEmpty() {
+    List<ShipmentDisplay> mockShipmentDisplays = getMockDisplays();
+
+    when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
+    when(orderClient.getOrdersByAccount(anyLong()))
+        .thenReturn(Arrays.asList(new Order(0, new ArrayList<>())));
+    when(productClient.getProductById(anyLong())).thenReturn(new Product("Test"));
+    List<ShipmentDisplay> shipmentDisplays = shipmentService.getShipmentByAccountId(1);
+
+    for (int i = 0; i < shipmentDisplays.size(); i++) {
+      ShipmentDisplay shipmentDisplay = shipmentDisplays.get(i);
+      ShipmentDisplay mockShipmentDisplay = mockShipmentDisplays.get(i);
+      assertThat(shipmentDisplay.getOrderNumber(), is(0L));
+      assertThat(shipmentDisplay.getShippedDate(), is(equalTo(mockShipmentDisplay.getShippedDate())));
+      assertThat(shipmentDisplay.getDeliveryDate(), is(equalTo(mockShipmentDisplay.getDeliveryDate())));
+      for(int j = 0; j < shipmentDisplay.getOrderLineItems().size(); j++) {
+        OrderLineItem orderLineItem = shipmentDisplay.getOrderLineItems().get(j);
+        OrderLineItem mockOrderLineItem = mockShipmentDisplay.getOrderLineItems().get(j);
+        assertThat(orderLineItem.getProductName(), is(equalTo("Test")));
+        assertThat(orderLineItem.getQuantity(), is(mockOrderLineItem.getQuantity()));
+      }
+    }
+  }
+
+  @Test
+  public void getShipmentByAccountId_ProductServiceIsDown_ProductNamesAreEmpty() {
     List<ShipmentDisplay> mockShipmentDisplays = getMockDisplays();
 
     when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
