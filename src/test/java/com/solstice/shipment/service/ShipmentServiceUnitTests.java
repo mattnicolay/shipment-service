@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -118,28 +119,20 @@ public class ShipmentServiceUnitTests {
     }
   }
 
-  @Test
-  public void getShipmentByAccountId_InvalidProductId_ProductNamesAreEmpty() {
-    List<ShipmentDisplay> mockShipmentDisplays = getMockDisplays();
-
+  @Test(expected = EntityNotFoundException.class)
+  public void getShipmentByAccountId_ProductServiceIsDown_ThrowsEntityNotFoundException() {
     when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
     when(orderClient.getOrdersByAccount(anyLong())).thenReturn(getMockOrders());
-    when(productClient.getProductById(anyLong())).thenReturn(new Product(""));
-    List<ShipmentDisplay> shipmentDisplays = shipmentService.getShipmentByAccountId(1);
 
-    for (int i = 0; i < shipmentDisplays.size(); i++) {
-      ShipmentDisplay shipmentDisplay = shipmentDisplays.get(i);
-      ShipmentDisplay mockShipmentDisplay = mockShipmentDisplays.get(i);
-      assertThat(shipmentDisplay.getOrderNumber(), is(mockShipmentDisplay.getOrderNumber()));
-      assertThat(shipmentDisplay.getShippedDate(), is(equalTo(mockShipmentDisplay.getShippedDate())));
-      assertThat(shipmentDisplay.getDeliveryDate(), is(equalTo(mockShipmentDisplay.getDeliveryDate())));
-      for(int j = 0; j < shipmentDisplay.getOrderLineItems().size(); j++) {
-        OrderLineItem orderLineItem = shipmentDisplay.getOrderLineItems().get(j);
-        OrderLineItem mockOrderLineItem = mockShipmentDisplay.getOrderLineItems().get(j);
-        assertThat(orderLineItem.getProductName(), is(equalTo("")));
-        assertThat(orderLineItem.getQuantity(), is(mockOrderLineItem.getQuantity()));
-      }
-    }
+    shipmentService.getShipmentByAccountId(1);
+  }
+
+  @Test(expected = EntityNotFoundException.class)
+  public void getShipmentByAccountId_OrderOrderLineServiceIsDown_ThrowsEntityNotFoundException() {
+    when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
+    when(orderClient.getOrdersByAccount(anyLong())).thenReturn(null);
+
+    shipmentService.getShipmentByAccountId(1);
   }
 
   @Test
