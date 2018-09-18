@@ -124,6 +124,7 @@ public class ShipmentServiceUnitTests {
 
     when(shipmentRepository.findAllByAccountIdOrderByDeliveryDate(1)).thenReturn(getMockShipments());
     when(orderClient.getOrdersByAccount(anyLong())).thenReturn(getMockOrders());
+    when(productClient.getProductById(anyLong())).thenReturn(new Product(""));
     List<ShipmentDisplay> shipmentDisplays = shipmentService.getShipmentByAccountId(1);
 
     for (int i = 0; i < shipmentDisplays.size(); i++) {
