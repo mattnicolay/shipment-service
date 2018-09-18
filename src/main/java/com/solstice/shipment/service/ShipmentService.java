@@ -1,6 +1,7 @@
 package com.solstice.shipment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.solstice.shipment.dao.ShipmentRepository;
 import com.solstice.shipment.external.OrderClient;
 import com.solstice.shipment.external.ProductClient;
@@ -11,6 +12,7 @@ import com.solstice.shipment.model.Shipment;
 import com.solstice.shipment.model.ShipmentDisplay;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -49,9 +51,12 @@ public class ShipmentService {
     List<Order> orders = orderClient.getOrdersByAccount(accountId);
 
     shipments.forEach(shipment -> {
-      Optional<Order> orderOptional = orders.stream()
-          .filter(order -> orderHasShipmentId(order, shipments)).findFirst();
-      Order order = orderOptional.orElseGet(Order::new);
+      Optional<Order> orderOptional =
+          orders
+              .stream()
+              .filter(order -> orderHasShipmentId(order, shipments))
+              .findFirst();
+      Order order = orderOptional.orElseGet(() -> new Order(-1, new ArrayList<>()));
       long orderNumber = order.getOrderNumber();
 
       setProductNames(order.getOrderLineItems());
@@ -70,10 +75,10 @@ public class ShipmentService {
   }
 
   private void setProductNames(List<OrderLineItem> orderLineItems) {
-    orderLineItems.forEach(orderLineItem -> {
+    for(OrderLineItem orderLineItem : orderLineItems) {
       Product product = productClient.getProductById(orderLineItem.getProductId());
-      orderLineItem.setProductName(product == null ? "" : product.getName());
-    });
+      orderLineItem.setProductName(product.getName());
+    }
   }
 
   private boolean orderHasShipmentId(Order order, List<Shipment> shipments) {
@@ -110,7 +115,9 @@ public class ShipmentService {
 
   public Shipment deleteShipment(long id) {
     Shipment shipment = shipmentRepository.findById(id);
-    shipmentRepository.delete(shipment);
+    if (shipment != null) {
+      shipmentRepository.delete(shipment);
+    }
     return shipment;
   }
 }

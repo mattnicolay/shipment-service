@@ -1,6 +1,9 @@
 package com.solstice.shipment.external;
 
 import com.solstice.shipment.model.Order;
+import com.solstice.shipment.model.OrderLineItem;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,6 @@ class OrderClientFallback implements OrderClient {
 
   @Override
   public List<Order> getOrdersByAccount(long accountId) {
-    return null;
+    return Arrays.asList(new Order(-1, new ArrayList<>()));
   }
 }
