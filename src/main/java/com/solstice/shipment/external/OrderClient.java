@@ -21,6 +21,6 @@ class OrderClientFallback implements OrderClient {
 
   @Override
   public List<Order> getOrdersByAccount(long accountId) {
-    return Arrays.asList(new Order(-1, new ArrayList<>()));
+    return Arrays.asList(new Order(0, new ArrayList<>()));
   }
 }
