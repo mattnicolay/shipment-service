@@ -19,7 +19,6 @@ import com.solstice.shipment.model.ShipmentDisplay;
 import com.solstice.shipment.service.ShipmentService;
 import java.io.IOException;
 import java.util.Arrays;
-import javax.persistence.EntityNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,12 +56,7 @@ public class ShipmentControllerUnitTests {
   @Test
   public void getShipments_Found_StatusCode200() throws Exception {
     when(shipmentService.getShipments()).thenReturn(Arrays.asList(new Shipment()));
-    mockMvcPerform(
-        GET,
-        "/shipments",
-        "",
-        200,
-        toJson(Arrays.asList(new Shipment())));
+    mockMvcPerform(GET, "/shipments", "", 200, toJson(Arrays.asList(new Shipment())));
   }
 
   @Test
@@ -72,31 +66,13 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void getShipmentsByAccountId_Found_StatusCode200() throws Exception {
-    when(shipmentService.getShipmentByAccountId(1))
-        .thenReturn(Arrays.asList(new ShipmentDisplay()));
-    mockMvcPerform(
-        GET,
-        "/shipments?accountId=1",
-        "",
-        200,
-        toJson(Arrays.asList(new ShipmentDisplay())));
+    when(shipmentService.getShipmentByAccountId(1)).thenReturn(Arrays.asList(new ShipmentDisplay()));
+    mockMvcPerform(GET, "/shipments?accountId=1", "", 200, toJson(Arrays.asList(new ShipmentDisplay())));
   }
 
   @Test
   public void getShipmentsByAccountId_NotFound_StatusCode404() throws Exception {
-    mockMvcPerform(
-        GET,
-        "/shipments?accountId=-1",
-        404,
-        "[]");
-  }
-
-  @Test
-  public void getShipmentsByAccountId_ExternalServiceIsDown_StatusCode500() throws Exception {
-    when(shipmentService.getShipmentByAccountId(1))
-        .thenThrow(new EntityNotFoundException("Could not fetch orders"));
-    mockMvcPerform(GET, "/shipments?accountId=1", 500,
-        "<h1>ERROR:</h1>\n Could not fetch orders");
+    mockMvcPerform(GET, "/shipments", 404, "[]");
   }
 
   @Test
@@ -113,12 +89,7 @@ public class ShipmentControllerUnitTests {
   @Test
   public void createShipment_ValidJson_StatusCode201() throws Exception {
     when(shipmentService.createShipment(toJson(new Shipment()))).thenReturn(new Shipment());
-    mockMvcPerform(
-        POST,
-        "/shipments",
-        toJson(new Shipment()),
-        201,
-        toJson(new Shipment()));
+    mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 201, toJson(new Shipment()));
   }
 
   @Test
@@ -131,7 +102,7 @@ public class ShipmentControllerUnitTests {
     when(shipmentService.createShipment(anyString())).thenThrow(new IOException());
     mockMvcPerform(POST, "/shipments", "{wrong}", 400,
         "<h1>ERROR:</h1>\n"
-            + " Invalid Json format");
+        + " Invalid Json format");
   }
 
   @Test
@@ -150,7 +121,7 @@ public class ShipmentControllerUnitTests {
     when(shipmentService.updateShipment(anyLong(), anyString())).thenThrow(new IOException());
     mockMvcPerform(PUT, "/shipments/1", "{wrong}", 400,
         "<h1>ERROR:</h1>\n"
-            + " Invalid Json format");
+        + " Invalid Json format");
   }
 
   @Test
@@ -189,16 +160,14 @@ public class ShipmentControllerUnitTests {
     mockMvcPerform(method, endpoint, "", expectedStatus, "");
   }
 
-  private void mockMvcPerform(String method, String endpoint, int expectedStatus,
-      String expectedResponseBody)
+  private void mockMvcPerform(String method, String endpoint, int expectedStatus, String expectedResponseBody)
       throws Exception {
     mockMvcPerform(method, endpoint, "", expectedStatus, expectedResponseBody);
   }
 
-  private void mockMvcPerform(String method, String endpoint, String requestBody,
-      int expectedStatus,
+  private void mockMvcPerform(String method, String endpoint, String requestBody, int expectedStatus,
       String expectedResponseBody) throws Exception {
-    switch (method) {
+    switch(method){
 
       case GET:
         mockMvc.perform(get(endpoint)).andExpect(status().is(expectedStatus))
@@ -230,6 +199,6 @@ public class ShipmentControllerUnitTests {
 
       default:
         logger.error("Unknown method '{}' given to mockMvcPerform", method);
-    }
+      }
   }
 }

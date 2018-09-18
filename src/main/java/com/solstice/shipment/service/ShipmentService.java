@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,9 +49,6 @@ public class ShipmentService {
     List<ShipmentDisplay> shipmentDisplays = new ArrayList<>();
     List<Shipment> shipments = shipmentRepository.findAllByAccountIdOrderByDeliveryDate(accountId);
     List<Order> orders = orderClient.getOrdersByAccount(accountId);
-    if (orders == null) {
-      throw new EntityNotFoundException("Could not fetch orders");
-    }
 
     shipments.forEach(shipment -> {
       Optional<Order> orderOptional =
@@ -81,10 +77,6 @@ public class ShipmentService {
   private void setProductNames(List<OrderLineItem> orderLineItems) {
     for(OrderLineItem orderLineItem : orderLineItems) {
       Product product = productClient.getProductById(orderLineItem.getProductId());
-      if (product == null) {
-        throw new EntityNotFoundException("Could not fetch products");
-      }
-
       orderLineItem.setProductName(product.getName());
     }
   }
