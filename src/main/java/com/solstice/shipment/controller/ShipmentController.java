@@ -52,7 +52,7 @@ public class ShipmentController {
   }
 
   @PostMapping
-  public ResponseEntity<Shipment> createShipment(@RequestBody String body) throws IOException {
+  public ResponseEntity<Shipment> createShipment(@RequestBody Shipment body) {
     Shipment shipment = shipmentService.createShipment(body);
     return new ResponseEntity<>(
         shipment,
@@ -63,7 +63,7 @@ public class ShipmentController {
 
   @PutMapping("/{id}")
   public ResponseEntity<Shipment> updateShipment(@PathVariable("id") long id,
-      @RequestBody String body) throws IOException {
+      @RequestBody Shipment body) {
     Shipment shipment = shipmentService.updateShipment(id, body);
     return new ResponseEntity<>(
         shipment,

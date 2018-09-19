@@ -1,7 +1,7 @@
 package com.solstice.shipment.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,12 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solstice.shipment.controller.ShipmentController;
 import com.solstice.shipment.exception.ShipmentExceptionHandler;
 import com.solstice.shipment.model.Shipment;
 import com.solstice.shipment.model.ShipmentDisplay;
 import com.solstice.shipment.service.ShipmentService;
-import java.io.IOException;
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,21 +86,13 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void createShipment_ValidJson_StatusCode201() throws Exception {
-    when(shipmentService.createShipment(toJson(new Shipment()))).thenReturn(new Shipment());
+    when(shipmentService.createShipment(any(Shipment.class))).thenReturn(new Shipment());
     mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 201, toJson(new Shipment()));
   }
 
   @Test
   public void createShipment_InternalFailure_StatusCode500() throws Exception {
-    mockMvcPerform(POST, "/shipments", "{wrong}", 500, "");
-  }
-
-  @Test
-  public void createShipment_InvalidJson_StatusCode400() throws Exception {
-    when(shipmentService.createShipment(anyString())).thenThrow(new IOException());
-    mockMvcPerform(POST, "/shipments", "{wrong}", 400,
-        "<h1>ERROR:</h1>\n"
-        + " Invalid Json format");
+    mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 500, "");
   }
 
   @Test
@@ -112,16 +102,8 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void updateShipment_ValidIdAndJson_StatusCode200() throws Exception {
-    when(shipmentService.updateShipment(1, toJson(new Shipment()))).thenReturn(new Shipment());
+    when(shipmentService.updateShipment(anyLong(), any(Shipment.class))).thenReturn(new Shipment());
     mockMvcPerform(PUT, "/shipments/1", toJson(new Shipment()), 200, toJson(new Shipment()));
-  }
-
-  @Test
-  public void updateShipment_InvalidJson_StatusCode400() throws Exception {
-    when(shipmentService.updateShipment(anyLong(), anyString())).thenThrow(new IOException());
-    mockMvcPerform(PUT, "/shipments/1", "{wrong}", 400,
-        "<h1>ERROR:</h1>\n"
-        + " Invalid Json format");
   }
 
   @Test

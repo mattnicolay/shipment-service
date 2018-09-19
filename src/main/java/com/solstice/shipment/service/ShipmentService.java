@@ -92,16 +92,14 @@ public class ShipmentService {
     return false;
   }
 
-  public Shipment createShipment(String data) throws IOException {
-    Shipment shipment = objectMapper.readValue(data, Shipment.class);
+  public Shipment createShipment(Shipment shipment) {
     if (shipment != null) {
       shipmentRepository.save(shipment);
     }
     return shipment;
   }
 
-  public Shipment updateShipment(long id, String data) throws IOException {
-    Shipment updatedShipment = objectMapper.readValue(data, Shipment.class);
+  public Shipment updateShipment(long id, Shipment updatedShipment) {
     Shipment dbShipment = shipmentRepository.findById(id);
     if (updatedShipment == null || dbShipment == null) {
       return null;

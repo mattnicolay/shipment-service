@@ -178,23 +178,18 @@ public class ShipmentServiceUnitTests {
   }
 
   @Test
-  public void createShipment_ValidJson_ReturnsShipment() throws IOException {
+  public void createShipment_ValidJson_ReturnsShipment() {
     Shipment mockShipment = getMockShipment1();
-    Shipment shipment = shipmentService.createShipment(toJson(mockShipment));
+    Shipment shipment = shipmentService.createShipment(mockShipment);
 
     assertThatShipmentsAreEqual(mockShipment, shipment);
   }
 
-  @Test(expected = IOException.class)
-  public void createShipment_InvalidJson_ThrowsIOException() throws IOException {
-    shipmentService.createShipment("{wrong}");
-  }
-
   @Test
-  public void updateShipment_ValidIdAndJson_ReturnsShipment() throws IOException {
+  public void updateShipment_ValidIdAndJson_ReturnsShipment() {
     Shipment mockShipment = getMockShipment1();
     when(shipmentRepository.findById(1)).thenReturn(mockShipment);
-    Shipment shipment = shipmentService.updateShipment(1, toJson(mockShipment));
+    Shipment shipment = shipmentService.updateShipment(1, mockShipment);
 
     assertThatShipmentsAreEqual(mockShipment, shipment);
   }
@@ -202,12 +197,7 @@ public class ShipmentServiceUnitTests {
   @Test
   public void updateShipment_InvalidId_ReturnsNull() throws IOException {
     when(shipmentRepository.findById(2)).thenReturn(null);
-    assertThat(shipmentService.updateShipment(2, toJson(getMockShipment1())), is(nullValue()));
-  }
-
-  @Test(expected = IOException.class)
-  public void updateShipment_InvalidJson_ThrowsIOException() throws IOException {
-    shipmentService.updateShipment(1, "{wrong}");
+    assertThat(shipmentService.updateShipment(2, getMockShipment1()), is(nullValue()));
   }
 
   @Test
