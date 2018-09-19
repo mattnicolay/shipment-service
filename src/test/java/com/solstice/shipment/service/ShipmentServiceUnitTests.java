@@ -38,7 +38,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 public class ShipmentServiceUnitTests {
 
-  private Logger logger = LoggerFactory.getLogger(ShipmentServiceUnitTests.class);
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
 
   @MockBean
   private ShipmentRepository shipmentRepository;

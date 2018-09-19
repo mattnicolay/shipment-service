@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ShipmentService {
 
-  private Logger logger = LoggerFactory.getLogger(ShipmentService.class);
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private ShipmentRepository shipmentRepository;
   private OrderClient orderClient;

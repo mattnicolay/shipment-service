@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @WebMvcTest(ShipmentController.class)
 public class ShipmentControllerUnitTests {
 
-  private Logger logger = LoggerFactory.getLogger(ShipmentController.class);
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
   private final String GET = "GET";
   private final String POST = "POST";
   private final String PUT = "PUT";
