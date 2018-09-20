@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solstice.shipment.exception.ShipmentExceptionHandler;
 import com.solstice.shipment.model.Shipment;
 import com.solstice.shipment.model.ShipmentDisplay;
 import com.solstice.shipment.service.ShipmentService;
@@ -47,8 +46,7 @@ public class ShipmentControllerUnitTests {
   @Before
   public void setup() {
     ShipmentController shipmentController = new ShipmentController(shipmentService);
-    mockMvc = MockMvcBuilders.standaloneSetup(shipmentController)
-        .setControllerAdvice(new ShipmentExceptionHandler()).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(shipmentController).build();
   }
 
   @Test
@@ -59,7 +57,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void getShipments_NotFound_StatusCode404() throws Exception {
-    mockMvcPerform(GET, "/shipments", 404, "[]");
+    mockMvcPerform(GET, "/shipments", 404, "No shipments found");
   }
 
   @Test
@@ -70,7 +68,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void getShipmentsByAccountId_NotFound_StatusCode404() throws Exception {
-    mockMvcPerform(GET, "/shipments", 404, "[]");
+    mockMvcPerform(GET, "/shipments?accountId=-1", 404, "No shipments found");
   }
 
   @Test
@@ -81,7 +79,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void getShipmentsById_NotFound_StatusCode404() throws Exception {
-    mockMvcPerform(GET, "/shipments/1", 404, "");
+    mockMvcPerform(GET, "/shipments/1", 404, "No shipment found with id: 1");
   }
 
   @Test
@@ -92,7 +90,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void createShipment_InternalFailure_StatusCode500() throws Exception {
-    mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 500, "");
+    mockMvcPerform(POST, "/shipments", toJson(new Shipment()), 400, "Could not create shipment");
   }
 
   @Test
@@ -108,7 +106,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void updateShipment_InvalidId_StatusCode404() throws Exception {
-    mockMvcPerform(PUT, "/shipments/1", toJson(new Shipment()), 404, "");
+    mockMvcPerform(PUT, "/shipments/1", toJson(new Shipment()), 404, "No shipment found with id: 1");
   }
 
   @Test
@@ -124,7 +122,7 @@ public class ShipmentControllerUnitTests {
 
   @Test
   public void deleteShipment_InvalidId_StatusCode404() throws Exception {
-    mockMvcPerform(DELETE, "/shipments/1", 404, "");
+    mockMvcPerform(DELETE, "/shipments/1", 404, "No shipment found with id: 1");
   }
 
   private String toJson(Object value) {

@@ -1,7 +1,6 @@
 package com.solstice.shipment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.solstice.shipment.dao.ShipmentRepository;
 import com.solstice.shipment.external.OrderClient;
 import com.solstice.shipment.external.ProductClient;
@@ -10,9 +9,7 @@ import com.solstice.shipment.model.OrderLineItem;
 import com.solstice.shipment.model.Product;
 import com.solstice.shipment.model.Shipment;
 import com.solstice.shipment.model.ShipmentDisplay;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
